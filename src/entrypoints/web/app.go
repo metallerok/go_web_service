@@ -5,6 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 	"log"
 	"time"
 	httpErrors "web_service/src/entrypoints/web/errors"
@@ -56,6 +58,20 @@ func CustomLogger() fiber.Handler {
 	}
 }
 
+func DatabaseMiddleware() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		dsn := "host=localhost user=datagrip password=datagrip dbname=test_gorm port=5432 sslmode=disable TimeZone=UTC"
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+		if err != nil {
+			log.Panicf(err.Error())
+		}
+		c.Locals("db", db)
+
+		return c.Next()
+	}
+}
+
 func main() {
 	validators.InitValidators()
 
@@ -64,6 +80,7 @@ func main() {
 	})
 
 	app.Use(recover.New())
+	app.Use(DatabaseMiddleware())
 	app.Use(requestid.New())
 	app.Use(MaskPasswords())
 	app.Use(CustomLogger())
