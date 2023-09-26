@@ -7,18 +7,19 @@ import (
 )
 
 func CreateUserAPI(c *fiber.Ctx) error {
-	reqUser := &services.UserInputDS{
-		Type: "",
-		Name: "John",
+	userInput := new(services.UserInputDS)
+
+	if err := c.BodyParser(userInput); err != nil {
+		return err
 	}
 
-	err := httpErrors.HTTPValidate(reqUser)
+	err := httpErrors.HTTPValidate(userInput)
 
 	if err != nil {
 		return err
 	}
 
-	user := services.CreateUser(reqUser)
+	user := services.CreateUser(userInput)
 
 	return c.JSON(user)
 }

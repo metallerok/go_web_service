@@ -1,10 +1,39 @@
 package httpErrors
 
 import (
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/utils"
 	"web_service/src/models/validators"
 )
+
+func HandleError(ctx *fiber.Ctx, err error) error {
+	code := fiber.StatusInternalServerError
+	message := fiber.ErrInternalServerError.Message
+	internalCode := ""
+	var errors_ []string
+
+	var e_ *HTTPError
+	if errors.As(err, &e_) {
+		internalCode = e_.InternalCode
+		code = e_.Code
+		message = e_.Message
+		errors_ = e_.Errors
+	}
+
+	var e *fiber.Error
+	if errors.As(err, &e) {
+		code = e.Code
+		message = utils.StatusMessage(e.Code)
+	}
+
+	return ctx.Status(code).JSON(fiber.Map{
+		"status":        message,
+		"code":          code,
+		"internal_code": internalCode,
+		"errors":        errors_,
+	})
+}
 
 type HTTPError struct {
 	Code         int      `json:"code"`
