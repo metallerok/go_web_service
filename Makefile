@@ -9,4 +9,4 @@ migration:
 
 
 migrate:
-	atlas schema apply --env gorm
+	atlas migrate apply --env gorm
