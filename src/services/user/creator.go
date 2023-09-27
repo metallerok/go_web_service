@@ -1,6 +1,9 @@
 package user_services
 
-import "web_service/src/models"
+import (
+	"web_service/src/models"
+	"web_service/src/repositories"
+)
 
 type UserInputDS struct {
 	Name     string `validate:"required,user_name" json:"name"`
@@ -8,13 +11,22 @@ type UserInputDS struct {
 	Password string `validate:"required" json:"password"`
 }
 
-func CreateUser(data *UserInputDS) *models.User {
+type IUserCreator interface {
+	CreateUser(data *UserInputDS) *models.User
+}
+
+type UserCreator struct {
+	UsersRepo repositories.IUsersRepo
+}
+
+func (c UserCreator) CreateUser(data *UserInputDS) *models.User {
 	user := &models.User{
-		Id:       1,
 		Name:     data.Name,
 		Type:     data.Type,
 		Password: data.Password,
 	}
+
+	c.UsersRepo.Add(user)
 
 	return user
 }

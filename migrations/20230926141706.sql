@@ -1,9 +1,9 @@
 -- Create "users" table
 CREATE TABLE "users" (
   "id" bigserial NOT NULL,
-  "created_at" timestamptz NULL,
-  "updated_at" timestamptz NULL,
-  "deleted_at" timestamptz NULL,
+  "created_at" timestamp NULL,
+  "updated_at" timestamp NULL,
+  "deleted_at" timestamp NULL,
   "name" text NULL,
   "password" text NULL,
   "type" text NULL,

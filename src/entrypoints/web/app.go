@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 	"log"
 	"time"
 	httpErrors "web_service/src/entrypoints/web/errors"
@@ -42,12 +43,19 @@ func CustomLogger() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		start := time.Now()
 
+		code := c.Response().StatusCode()
+
 		err := c.Next()
+
+		if err != nil {
+			code = fiber.StatusInternalServerError
+		}
 
 		duration := time.Since(start)
 
-		log.Printf("status=%d method=%s path=%s duration=%s body=%s headers=%s\n",
-			c.Response().StatusCode(),
+		log.Printf("request_id=%s status=%d method=%s path=%s duration=%s body=%s headers=%s\n",
+			c.GetRespHeader("X-Request-Id"),
+			code,
 			c.Method(),
 			c.Path(),
 			duration.String(),
@@ -61,7 +69,9 @@ func CustomLogger() fiber.Handler {
 func DatabaseMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		dsn := "host=localhost user=datagrip password=datagrip dbname=test_gorm port=5432 sslmode=disable TimeZone=UTC"
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
+			Logger: logger.Default.LogMode(logger.Info),
+		})
 
 		if err != nil {
 			log.Panicf(err.Error())

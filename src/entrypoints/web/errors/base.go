@@ -3,11 +3,14 @@ package httpErrors
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/utils"
 	"web_service/src/models/validators"
 )
 
 func HandleError(ctx *fiber.Ctx, err error) error {
+	log.Error(err)
+
 	code := fiber.StatusInternalServerError
 	message := fiber.ErrInternalServerError.Message
 	internalCode := ""
