@@ -89,7 +89,9 @@ func main() {
 		ErrorHandler: httpErrors.HandleError,
 	})
 
-	app.Use(recover.New())
+	app.Use(recover.New(recover.Config{
+		EnableStackTrace: true,
+	}))
 	app.Use(DatabaseMiddleware())
 	app.Use(requestid.New())
 	app.Use(MaskPasswords())
