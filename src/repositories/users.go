@@ -7,6 +7,7 @@ import (
 
 type IUsersRepo interface {
 	Add(user *models.User)
+	Get(id int) *models.User
 }
 
 type UsersRepo struct {
@@ -15,4 +16,15 @@ type UsersRepo struct {
 
 func (repo UsersRepo) Add(user *models.User) {
 	repo.DB.Create(user)
+}
+
+func (repo UsersRepo) Get(id int) *models.User {
+	var user models.User
+	repo.DB.First(&user, id)
+
+	if user.ID != 0 {
+		return &user
+	} else {
+		return nil
+	}
 }

@@ -42,3 +42,30 @@ func CreateUserAPI(c *fiber.Ctx) error {
 
 	return c.JSON(user)
 }
+
+func GetUserAPI(c *fiber.Ctx) error {
+
+	id, err := c.ParamsInt("id")
+
+	if err != nil {
+		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make([]string, 0))
+	}
+
+	db, ok := c.Locals("db").(*gorm.DB)
+
+	if !ok {
+		return fmt.Errorf("failed to get database connection from context")
+	}
+
+	var usersRepo repositories.IUsersRepo = &repositories.UsersRepo{
+		DB: db,
+	}
+
+	user := usersRepo.Get(id)
+
+	if user == nil {
+		return httpErrors.NewError(fiber.StatusNotFound, "", make([]string, 0))
+	}
+
+	return c.JSON(user)
+}
