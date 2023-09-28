@@ -10,3 +10,7 @@ migration:
 
 migrate:
 	atlas migrate apply --env gorm
+
+
+build:
+	go build -o ./build/webapp ./src/entrypoints/web/
