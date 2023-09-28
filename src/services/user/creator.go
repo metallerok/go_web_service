@@ -12,14 +12,14 @@ type UserInputDS struct {
 }
 
 type IUserCreator interface {
-	CreateUser(data *UserInputDS) *models.User
+	CreateUser(data UserInputDS) *models.User
 }
 
 type UserCreator struct {
 	UsersRepo repositories.IUsersRepo
 }
 
-func (c UserCreator) CreateUser(data *UserInputDS) *models.User {
+func (c UserCreator) CreateUser(data UserInputDS) *models.User {
 	user := &models.User{
 		Name:     data.Name,
 		Type:     data.Type,

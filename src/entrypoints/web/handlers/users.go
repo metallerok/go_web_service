@@ -10,13 +10,13 @@ import (
 )
 
 func CreateUserAPI(c *fiber.Ctx) error {
-	userInput := new(services.UserInputDS)
+	reqBody := services.UserInputDS{}
 
-	if err := c.BodyParser(userInput); err != nil {
+	if err := c.BodyParser(&reqBody); err != nil {
 		return err
 	}
 
-	err := httpErrors.HTTPValidate(userInput)
+	err := httpErrors.HTTPValidate(reqBody)
 
 	if err != nil {
 		return err
@@ -36,7 +36,7 @@ func CreateUserAPI(c *fiber.Ctx) error {
 		UsersRepo: usersRepo,
 	}
 
-	user := userCreator.CreateUser(userInput)
+	user := userCreator.CreateUser(reqBody)
 
 	db.Commit()
 
@@ -77,9 +77,9 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make([]string, 0))
 	}
 
-	reqBody := new(services.UserUpdateDS)
+	reqBody := services.UserUpdateDS{}
 
-	if err := c.BodyParser(reqBody); err != nil {
+	if err := c.BodyParser(&reqBody); err != nil {
 		return err
 	}
 

@@ -14,15 +14,15 @@ type UserUpdateDS struct {
 }
 
 type IUserUpdater interface {
-	UpdateUser(user *models.User, data *UserUpdateDS) (*models.User, error)
+	UpdateUser(user *models.User, data UserUpdateDS) (*models.User, error)
 }
 
 type UserUpdater struct {
 	UsersRepo repositories.IUsersRepo
 }
 
-func (c UserUpdater) UpdateUser(user *models.User, data *UserUpdateDS) (*models.User, error) {
-	rt := reflect.ValueOf(*data)
+func (c UserUpdater) UpdateUser(user *models.User, data UserUpdateDS) (*models.User, error) {
+	rt := reflect.ValueOf(data)
 
 	if rt.Kind() != reflect.Struct {
 		panic("bad UserUpdateDS type")
