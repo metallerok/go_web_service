@@ -13,7 +13,7 @@ type ErrorResponse struct {
 	Message     string
 }
 
-var Validator_ *validator.Validate = validator.New()
+var Validator_ = validator.New()
 
 func InitValidators() {
 	err := Validator_.RegisterValidation("user_name", ValidateName)

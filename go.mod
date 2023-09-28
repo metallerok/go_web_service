@@ -3,7 +3,6 @@ module web_service
 go 1.18
 
 require (
-	github.com/go-errors/errors v1.5.1
 	github.com/go-playground/validator/v10 v10.15.4
 	github.com/gofiber/fiber/v2 v2.49.2
 	github.com/oleiade/reflections v1.0.1
