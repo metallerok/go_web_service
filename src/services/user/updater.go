@@ -9,12 +9,6 @@ import (
 	"web_service/src/repositories"
 )
 
-//type UserUpdateDS struct {
-//	Name     string `validate:"required,user_name" json:"name"`
-//	Type     string `validate:"required" json:"type"`
-//	Password string `validate:"required" json:"password"`
-//}
-
 type IUserUpdater interface {
 	UpdateUser(user *models.User, data *map[string]interface{}) (*models.User, error)
 }

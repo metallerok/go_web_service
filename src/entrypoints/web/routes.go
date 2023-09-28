@@ -9,4 +9,5 @@ func SetupRoutes(app *fiber.App) {
 	app.Get("/user/:id<int>", webHandlers.GetUserAPI)
 	app.Post("/user", webHandlers.CreateUserAPI)
 	app.Patch("/user/:id<int>", webHandlers.UpdateUserAPI)
+	app.Patch("/v2/user/:id<int>", webHandlers.UpdateUserAPIV2)
 }

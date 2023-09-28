@@ -59,17 +59,17 @@ func NewError(code int, internalCode string, errors []string) *HTTPError {
 	return err
 }
 
-func HTTPValidate(data interface{}) *HTTPError {
-	if errs := validators.Validate(data); len(errs) > 0 {
-
-		errMsgs := make([]string, 0)
-
-		for _, err := range errs {
-			errMsgs = append(errMsgs, err.Message)
-		}
-
-		return NewError(fiber.StatusUnprocessableEntity, "", errMsgs)
+func HTTPValidate(data interface{}) error {
+	errs := validators.Validate(data)
+	if errs == nil || len(errs) == 0 {
+		return nil
 	}
 
-	return nil
+	errMsgs := make([]string, 0)
+
+	for _, err := range errs {
+		errMsgs = append(errMsgs, err.Message)
+	}
+
+	return NewError(fiber.StatusUnprocessableEntity, "", errMsgs)
 }

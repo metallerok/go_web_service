@@ -116,3 +116,54 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 
 	return c.JSON(user)
 }
+
+func UpdateUserAPIV2(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+
+	if err != nil {
+		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make([]string, 0))
+	}
+
+	reqBody := new(services.UserUpdateDS)
+
+	if err := c.BodyParser(reqBody); err != nil {
+		return err
+	}
+
+	err = httpErrors.HTTPValidate(reqBody)
+
+	if err != nil {
+		return err
+	}
+
+	db, ok := c.Locals("db").(*gorm.DB)
+
+	if !ok {
+		return fmt.Errorf("failed to get database connection from context")
+	}
+
+	var usersRepo repositories.IUsersRepo = &repositories.UsersRepo{
+		DB: db,
+	}
+
+	user := usersRepo.Get(id)
+
+	if user == nil {
+		return httpErrors.NewError(fiber.StatusNotFound, "", make([]string, 0))
+	}
+
+	var userUpdater services.IUserUpdaterV2 = &services.UserUpdaterV2{
+		UsersRepo: usersRepo,
+	}
+
+	user, err = userUpdater.UpdateUserV2(user, reqBody)
+
+	if err != nil {
+		return httpErrors.NewError(fiber.StatusBadRequest, "", make([]string, 0))
+	}
+
+	//db.Save(user)
+	//db.Commit()
+
+	return c.JSON(user)
+}
