@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/recover"
+	recoverMiddleware "github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -76,7 +76,15 @@ func DatabaseMiddleware() fiber.Handler {
 		if err != nil {
 			log.Panicf(err.Error())
 		}
-		c.Locals("db", db)
+
+		tx := db.Begin()
+		c.Locals("db", tx)
+
+		defer func() {
+			if r := recover(); r != nil {
+				tx.Rollback()
+			}
+		}()
 
 		return c.Next()
 	}
@@ -89,7 +97,7 @@ func main() {
 		ErrorHandler: httpErrors.HandleError,
 	})
 
-	app.Use(recover.New(recover.Config{
+	app.Use(recoverMiddleware.New(recoverMiddleware.Config{
 		EnableStackTrace: true,
 	}))
 	app.Use(DatabaseMiddleware())

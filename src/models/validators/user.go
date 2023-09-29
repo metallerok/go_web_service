@@ -2,14 +2,15 @@ package validators
 
 import (
 	"github.com/go-playground/validator/v10"
+	"web_service/src/models"
 )
 
-func ValidateName(fl validator.FieldLevel) bool {
-	field := fl.Field()
+func ValidateUserName(fl validator.FieldLevel) bool {
+	f := fl.Field().Interface().(models.UserName)
+	return f.Validate()
+}
 
-	if field.String() == "" {
-		return false
-	}
-
-	return true
+func ValidateUserAge(fl validator.FieldLevel) bool {
+	f := fl.Field().Interface().(models.UserAge)
+	return f.Validate()
 }

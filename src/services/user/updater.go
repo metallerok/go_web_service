@@ -8,9 +8,9 @@ import (
 )
 
 type UserUpdateDS struct {
-	Name     *string `json:"name"`
-	Type     *string `json:"type"`
-	Password *string `json:"password"`
+	Name     *models.UserName `json:"name"`
+	Type     *string          `json:"type"`
+	Password *string          `json:"password"`
 }
 
 type IUserUpdater interface {

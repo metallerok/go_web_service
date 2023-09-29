@@ -16,9 +16,11 @@ type ErrorResponse struct {
 var Validator_ = validator.New()
 
 func InitValidators() {
-	err := Validator_.RegisterValidation("user_name", ValidateName)
+	if err := Validator_.RegisterValidation("userName", ValidateUserName); err != nil {
+		log.Fatal(err)
+	}
 
-	if err != nil {
+	if err := Validator_.RegisterValidation("userAge", ValidateUserAge); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -35,7 +37,7 @@ func Validate(data interface{}) []ErrorResponse {
 			elem.Tag = err.Tag()           // Export struct tag
 			elem.Value = err.Value()       // Export field value
 			elem.Message = fmt.Sprintf(
-				"%s validation error with value '%s' by reason %s",
+				"%s validation error with value '%v' by reason %s",
 				elem.FailedField,
 				elem.Value,
 				elem.Tag,
