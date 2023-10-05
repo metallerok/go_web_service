@@ -1,4 +1,4 @@
-package user_services
+package services
 
 import (
 	"web_service/src/models"

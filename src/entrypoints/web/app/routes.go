@@ -1,4 +1,4 @@
-package main
+package webapp
 
 import (
 	"github.com/gofiber/fiber/v2"

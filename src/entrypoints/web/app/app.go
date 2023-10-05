@@ -1,17 +1,14 @@
-package main
+package webapp
 
 import (
 	"encoding/json"
 	"github.com/gofiber/fiber/v2"
 	recoverMiddleware "github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 	"log"
 	"time"
 	httpErrors "web_service/src/entrypoints/web/errors"
-	"web_service/src/models/validators"
 )
 
 func MaskPasswords() fiber.Handler {
@@ -48,7 +45,7 @@ func CustomLogger() fiber.Handler {
 		err := c.Next()
 
 		if err != nil {
-			code = fiber.StatusInternalServerError
+			code = c.Response().StatusCode()
 		}
 
 		duration := time.Since(start)
@@ -66,23 +63,13 @@ func CustomLogger() fiber.Handler {
 	}
 }
 
-func DatabaseMiddleware() fiber.Handler {
+func DatabaseMiddleware(dbSession *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		dsn := "host=localhost user=datagrip password=datagrip dbname=test_gorm port=5432 sslmode=disable TimeZone=UTC"
-		db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-			Logger: logger.Default.LogMode(logger.Info),
-		})
-
-		if err != nil {
-			log.Panicf(err.Error())
-		}
-
-		tx := db.Begin()
-		c.Locals("db", tx)
+		c.Locals("db", dbSession)
 
 		defer func() {
 			if r := recover(); r != nil {
-				tx.Rollback()
+				dbSession.Rollback()
 			}
 		}()
 
@@ -90,9 +77,7 @@ func DatabaseMiddleware() fiber.Handler {
 	}
 }
 
-func main() {
-	validators.InitValidators()
-
+func MakeApp(dbSession *gorm.DB) *fiber.App {
 	app := fiber.New(fiber.Config{
 		ErrorHandler: httpErrors.HandleError,
 	})
@@ -100,12 +85,12 @@ func main() {
 	app.Use(recoverMiddleware.New(recoverMiddleware.Config{
 		EnableStackTrace: true,
 	}))
-	app.Use(DatabaseMiddleware())
+	app.Use(DatabaseMiddleware(dbSession))
 	app.Use(requestid.New())
 	app.Use(MaskPasswords())
 	app.Use(CustomLogger())
 
 	SetupRoutes(app)
 
-	log.Fatal(app.Listen(":8000"))
+	return app
 }

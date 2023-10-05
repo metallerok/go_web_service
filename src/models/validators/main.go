@@ -1,9 +1,10 @@
 package validators
 
 import (
-	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2/log"
+	"reflect"
+	"strings"
 )
 
 type ErrorResponse struct {
@@ -16,6 +17,14 @@ type ErrorResponse struct {
 var Validator_ = validator.New()
 
 func InitValidators() {
+	Validator_.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+		if name == "-" {
+			return ""
+		}
+		return name
+	})
+
 	if err := Validator_.RegisterValidation("userName", ValidateUserName); err != nil {
 		log.Fatal(err)
 	}
@@ -32,20 +41,26 @@ func Validate(data interface{}) []ErrorResponse {
 	if errs != nil {
 		for _, err := range errs.(validator.ValidationErrors) {
 			var elem ErrorResponse
-
-			elem.FailedField = err.Field() // Export struct field name
-			elem.Tag = err.Tag()           // Export struct tag
-			elem.Value = err.Value()       // Export field value
-			elem.Message = fmt.Sprintf(
-				"%s validation error with value '%v' by reason %s",
-				elem.FailedField,
-				elem.Value,
-				elem.Tag,
-			)
+			elem.FailedField = err.Field()
+			elem.Tag = err.Tag()
+			elem.Value = err.Value()
+			elem.Message = msgForTag(err.Tag())
 
 			validationErrors = append(validationErrors, elem)
 		}
 	}
 
 	return validationErrors
+}
+
+func msgForTag(tag string) string {
+	switch tag {
+	case "email":
+		return "invalid email"
+	case "userAge":
+		return "age must be > 0 and < 200"
+	case "userName":
+		return "wrong name"
+	}
+	return tag
 }

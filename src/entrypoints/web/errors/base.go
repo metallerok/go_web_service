@@ -1,7 +1,9 @@
 package httpErrors
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/gofiber/fiber/v2/utils"
@@ -14,7 +16,7 @@ func HandleError(ctx *fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
 	message := fiber.ErrInternalServerError.Message
 	internalCode := ""
-	var errors_ []string
+	var errors_ map[string]string
 
 	var e_ *HTTPError
 	if errors.As(err, &e_) {
@@ -38,18 +40,30 @@ func HandleError(ctx *fiber.Ctx, err error) error {
 	})
 }
 
+func HandleMarshalingError(err error) error {
+	var e_ *json.UnmarshalTypeError
+	if errors.As(err, &e_) {
+		errMsg := make(map[string]string)
+		errMsg[e_.Field] = fmt.Sprintf("Wrong field type: %s. Must be %s", e_.Value, e_.Type.Kind())
+		return NewError(
+			fiber.StatusUnprocessableEntity, "", errMsg)
+	}
+
+	return err
+}
+
 type HTTPError struct {
-	Code         int      `json:"code"`
-	Message      string   `json:"status"`
-	InternalCode string   `json:"internal_code"`
-	Errors       []string `json:"errors"`
+	Code         int               `json:"code"`
+	Message      string            `json:"status"`
+	InternalCode string            `json:"internal_code"`
+	Errors       map[string]string `json:"errors"`
 }
 
 func (e *HTTPError) Error() string {
 	return e.Message
 }
 
-func NewError(code int, internalCode string, errors []string) *HTTPError {
+func NewError(code int, internalCode string, errors map[string]string) *HTTPError {
 	err := &HTTPError{
 		Code:         code,
 		Message:      utils.StatusMessage(code),
@@ -65,10 +79,10 @@ func HTTPValidate(data interface{}) error {
 		return nil
 	}
 
-	errMsgs := make([]string, 0)
+	errMsgs := make(map[string]string)
 
 	for _, err := range errs {
-		errMsgs = append(errMsgs, err.Message)
+		errMsgs[err.FailedField] = err.Message
 	}
 
 	return NewError(fiber.StatusUnprocessableEntity, "", errMsgs)

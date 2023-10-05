@@ -13,7 +13,7 @@ func CreateUserAPI(c *fiber.Ctx) error {
 	reqBody := services.UserInputDS{}
 
 	if err := c.BodyParser(&reqBody); err != nil {
-		return err
+		return httpErrors.HandleMarshalingError(err)
 	}
 
 	err := httpErrors.HTTPValidate(reqBody)
@@ -48,7 +48,7 @@ func GetUserAPI(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
 	if err != nil {
-		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make([]string, 0))
+		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make(map[string]string))
 	}
 
 	db, ok := c.Locals("db").(*gorm.DB)
@@ -64,7 +64,7 @@ func GetUserAPI(c *fiber.Ctx) error {
 	user := usersRepo.Get(id)
 
 	if user == nil {
-		return httpErrors.NewError(fiber.StatusNotFound, "", make([]string, 0))
+		return httpErrors.NewError(fiber.StatusNotFound, "", make(map[string]string))
 	}
 
 	return c.JSON(user)
@@ -74,13 +74,13 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
 	if err != nil {
-		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make([]string, 0))
+		return httpErrors.NewError(fiber.StatusUnprocessableEntity, "", make(map[string]string))
 	}
 
 	reqBody := services.UserUpdateDS{}
 
 	if err := c.BodyParser(&reqBody); err != nil {
-		return err
+		return httpErrors.HandleMarshalingError(err)
 	}
 
 	err = httpErrors.HTTPValidate(reqBody)
@@ -102,7 +102,7 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 	user := usersRepo.Get(id)
 
 	if user == nil {
-		return httpErrors.NewError(fiber.StatusNotFound, "", make([]string, 0))
+		return httpErrors.NewError(fiber.StatusNotFound, "", make(map[string]string))
 	}
 
 	var userUpdater services.IUserUpdater = &services.UserUpdater{
@@ -112,7 +112,7 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 	user, err = userUpdater.UpdateUser(user, reqBody)
 
 	if err != nil {
-		return httpErrors.NewError(fiber.StatusBadRequest, "", make([]string, 0))
+		return httpErrors.NewError(fiber.StatusBadRequest, "", make(map[string]string))
 	}
 
 	db.Save(user)

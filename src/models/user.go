@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -25,13 +26,13 @@ func (t UserAge) Validate() bool {
 }
 
 type User struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Name      UserName  `validate:"userName" json:"name"`
-	Password  string    `json:"-"`
-	Type      string    `json:"type"`
-	Desc      string    `json:"desc"`
-	Age       UserAge   `validate:"userAge" json:"age"`
-	CreatedAt time.Time `gorm:"autoCreateTime" json:"created"`
-	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated"`
-	DeletedAt time.Time `json:"-"`
+	ID        uint         `json:"id" gorm:"primaryKey"`
+	Name      UserName     `validate:"userName" json:"name"`
+	Password  string       `json:"-"`
+	Type      string       `json:"type"`
+	Desc      string       `json:"desc"`
+	Age       UserAge      `validate:"userAge" json:"age"`
+	CreatedAt time.Time    `gorm:"autoCreateTime" json:"created"`
+	UpdatedAt time.Time    `gorm:"autoUpdateTime" json:"updated"`
+	DeletedAt sql.NullTime `json:"-"`
 }
