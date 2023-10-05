@@ -80,3 +80,115 @@ func TestCreateUserAPI(t *testing.T) {
 		t.Errorf("CreateUserAPI error: fetched user_id != respBody['id']")
 	}
 }
+
+func TestCreateUserAPIButWrongSchemaType(t *testing.T) {
+	DB := db.MakeDB()
+	app := webapp.MakeApp(DB)
+
+	reqBody_ := map[string]interface{}{
+		"name":     "Test name",
+		"password": "1234",
+		"type":     "admin",
+		"age":      18,
+	}
+	reqBody, _ := json.Marshal(reqBody_)
+
+	req := httptest.NewRequest("POST", userUrl, bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/text")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if resp.StatusCode != fiber.StatusUnprocessableEntity {
+		t.Errorf("CreateUserAPI test error: wrong schema type must raise 422")
+	}
+}
+
+func TestCreateUserAPIButWrongSchemaFieldType(t *testing.T) {
+	DB := db.MakeDB()
+	app := webapp.MakeApp(DB)
+
+	reqBody_ := map[string]interface{}{
+		"name":     "Test name",
+		"password": 1234,
+		"type":     "admin",
+		"age":      18,
+	}
+	reqBody, _ := json.Marshal(reqBody_)
+
+	req := httptest.NewRequest("POST", userUrl, bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if resp.StatusCode != fiber.StatusUnprocessableEntity {
+		t.Errorf("CreateUserAPI test error: wrong schema must raise 422")
+	}
+
+	var respBody map[string]interface{}
+	if err = json.Unmarshal(body, &respBody); err != nil {
+		t.Error(err)
+	}
+
+	respErrors := respBody["errors"].(map[string]interface{})
+
+	if _, ok := respErrors["password"]; !ok {
+		t.Errorf("CreateUserAPI test error: wrong password type must be in error messages")
+	}
+}
+
+func TestCreateUserAPIButNotValidSchema(t *testing.T) {
+	DB := db.MakeDB()
+	app := webapp.MakeApp(DB)
+
+	reqBody_ := map[string]interface{}{
+		"name":     "",
+		"password": "1234",
+		"type":     "admin",
+		"age":      -1,
+	}
+	reqBody, _ := json.Marshal(reqBody_)
+
+	req := httptest.NewRequest("POST", userUrl, bytes.NewReader(reqBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := app.Test(req, -1)
+	if err != nil {
+		t.Error(err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if resp.StatusCode != fiber.StatusUnprocessableEntity {
+		t.Errorf("CreateUserAPI test error: validation must raise 422")
+	}
+
+	var respBody map[string]interface{}
+	if err = json.Unmarshal(body, &respBody); err != nil {
+		t.Error(err)
+	}
+
+	respErrors := respBody["errors"].(map[string]interface{})
+
+	if _, ok := respErrors["name"]; !ok {
+		t.Errorf("CreateUserAPI test error: name validation error must be in error messages")
+	}
+	if _, ok := respErrors["age"]; !ok {
+		t.Errorf("CreateUserAPI test error: age validation error must be in error messages")
+	}
+}
