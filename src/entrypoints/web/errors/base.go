@@ -78,7 +78,7 @@ func NewError(code int, internalCode string, errors map[string]string) *HTTPErro
 }
 
 func HTTPValidate(data interface{}) error {
-	errs := validators.Validate(data)
+	errs := validators.Valid(data)
 	if errs == nil || len(errs) == 0 {
 		return nil
 	}

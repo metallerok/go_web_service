@@ -34,7 +34,7 @@ func InitValidators() {
 	}
 }
 
-func Validate(data interface{}) []ErrorResponse {
+func Valid(data interface{}) []ErrorResponse {
 	var validationErrors []ErrorResponse
 
 	errs := Validator_.Struct(data)
