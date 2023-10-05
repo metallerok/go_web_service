@@ -13,14 +13,14 @@ type UserInputDS struct {
 }
 
 type IUserCreator interface {
-	CreateUser(data UserInputDS) models.User
+	CreateUser(data UserInputDS) (*models.User, error)
 }
 
 type UserCreator struct {
 	UsersRepo repositories.IUsersRepo
 }
 
-func (c UserCreator) CreateUser(data UserInputDS) models.User {
+func (c UserCreator) CreateUser(data UserInputDS) (*models.User, error) {
 	user := models.User{
 		Name:     data.Name,
 		Type:     data.Type,
@@ -28,7 +28,11 @@ func (c UserCreator) CreateUser(data UserInputDS) models.User {
 		Age:      data.Age,
 	}
 
-	c.UsersRepo.Add(&user)
+	err := c.UsersRepo.Add(&user)
 
-	return user
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

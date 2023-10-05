@@ -35,7 +35,11 @@ func CreateUserAPI(c *fiber.Ctx) error {
 		UsersRepo: usersRepo,
 	}
 
-	user := userCreator.CreateUser(reqBody)
+	user, err := userCreator.CreateUser(reqBody)
+
+	if err != nil {
+		return err
+	}
 
 	dbSession.Commit()
 

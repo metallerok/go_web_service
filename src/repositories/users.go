@@ -6,7 +6,7 @@ import (
 )
 
 type IUsersRepo interface {
-	Add(user *models.User)
+	Add(user *models.User) error
 	Get(id int) (*models.User, error)
 }
 
@@ -14,8 +14,8 @@ type UsersRepo struct {
 	DB *gorm.DB
 }
 
-func (repo UsersRepo) Add(user *models.User) {
-	repo.DB.Create(user)
+func (repo UsersRepo) Add(user *models.User) error {
+	return repo.DB.Create(user).Error
 }
 
 func (repo UsersRepo) Get(id int) (*models.User, error) {

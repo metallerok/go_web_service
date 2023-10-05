@@ -24,7 +24,11 @@ func TestCreateUser(t *testing.T) {
 		UsersRepo: usersRepo,
 	}
 
-	user := userCreator.CreateUser(data)
+	user, err := userCreator.CreateUser(data)
+
+	if err != nil {
+		t.Error(err)
+	}
 
 	dbSession.Commit()
 
