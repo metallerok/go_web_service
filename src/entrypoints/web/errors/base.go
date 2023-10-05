@@ -11,8 +11,6 @@ import (
 )
 
 func HandleError(ctx *fiber.Ctx, err error) error {
-	log.Error(err)
-
 	code := fiber.StatusInternalServerError
 	message := fiber.ErrInternalServerError.Message
 	internalCode := ""
@@ -32,6 +30,8 @@ func HandleError(ctx *fiber.Ctx, err error) error {
 		message = utils.StatusMessage(e.Code)
 	}
 
+	log.Error(err)
+
 	return ctx.Status(code).JSON(fiber.Map{
 		"status":        message,
 		"code":          code,
@@ -41,10 +41,14 @@ func HandleError(ctx *fiber.Ctx, err error) error {
 }
 
 func HandleMarshalingError(err error) error {
-	var e_ *json.UnmarshalTypeError
-	if errors.As(err, &e_) {
+	var typeErr *json.UnmarshalTypeError
+	if errors.As(err, &typeErr) {
 		errMsg := make(map[string]string)
-		errMsg[e_.Field] = fmt.Sprintf("Wrong field type: %s. Must be %s", e_.Value, e_.Type.Kind())
+		errMsg[typeErr.Field] = fmt.Sprintf(
+			"Wrong field type: %s. Must be %s",
+			typeErr.Value,
+			typeErr.Type.Kind())
+
 		return NewError(
 			fiber.StatusUnprocessableEntity, "", errMsg)
 	}

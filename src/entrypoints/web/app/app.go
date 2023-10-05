@@ -6,9 +6,12 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"gorm.io/gorm"
 	httpErrors "web_service/src/entrypoints/web/errors"
+	"web_service/src/models/validators"
 )
 
 func MakeApp(dbSession *gorm.DB) *fiber.App {
+	validators.InitValidators()
+
 	app := fiber.New(fiber.Config{
 		ErrorHandler: httpErrors.HandleError,
 	})

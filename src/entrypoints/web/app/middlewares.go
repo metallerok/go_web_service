@@ -72,13 +72,13 @@ func CustomLogger() fiber.Handler {
 	}
 }
 
-func DatabaseMiddleware(dbSession *gorm.DB) fiber.Handler {
+func DatabaseMiddleware(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		c.Locals("db", dbSession)
+		c.Locals("db", db)
 
 		defer func() {
 			if r := recover(); r != nil {
-				dbSession.Rollback()
+				db.Rollback()
 			}
 		}()
 

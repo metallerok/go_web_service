@@ -22,7 +22,5 @@ func MakeDB() *gorm.DB {
 		log.Panicf(err.Error())
 	}
 
-	tx := db.Begin()
-
-	return tx
+	return db
 }

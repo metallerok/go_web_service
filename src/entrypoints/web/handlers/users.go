@@ -3,6 +3,7 @@ package webHandlers
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/log"
 	"gorm.io/gorm"
 	httpErrors "web_service/src/entrypoints/web/errors"
 	"web_service/src/repositories"
@@ -15,21 +16,19 @@ func CreateUserAPI(c *fiber.Ctx) error {
 	if err := c.BodyParser(&reqBody); err != nil {
 		return httpErrors.HandleMarshalingError(err)
 	}
-
-	err := httpErrors.HTTPValidate(reqBody)
-
-	if err != nil {
+	if err := httpErrors.HTTPValidate(reqBody); err != nil {
 		return err
 	}
 
 	db, ok := c.Locals("db").(*gorm.DB)
+	dbSession := db.Begin()
 
 	if !ok {
-		return fmt.Errorf("failed to get database connection from context")
+		return fmt.Errorf("create user api: failed to get database connection from context")
 	}
 
 	var usersRepo repositories.IUsersRepo = &repositories.UsersRepo{
-		DB: db,
+		DB: dbSession,
 	}
 
 	var userCreator services.IUserCreator = &services.UserCreator{
@@ -38,7 +37,7 @@ func CreateUserAPI(c *fiber.Ctx) error {
 
 	user := userCreator.CreateUser(reqBody)
 
-	db.Commit()
+	dbSession.Commit()
 
 	return c.JSON(user)
 }
@@ -52,18 +51,20 @@ func GetUserAPI(c *fiber.Ctx) error {
 	}
 
 	db, ok := c.Locals("db").(*gorm.DB)
+	dbSession := db.Begin()
 
 	if !ok {
 		return fmt.Errorf("failed to get database connection from context")
 	}
 
 	var usersRepo repositories.IUsersRepo = &repositories.UsersRepo{
-		DB: db,
+		DB: dbSession,
 	}
 
-	user := usersRepo.Get(id)
+	user, err := usersRepo.Get(id)
 
-	if user == nil {
+	if err != nil {
+		log.Error(err)
 		return httpErrors.NewError(fiber.StatusNotFound, "", make(map[string]string))
 	}
 
@@ -90,18 +91,20 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 	}
 
 	db, ok := c.Locals("db").(*gorm.DB)
+	dbSession := db.Begin()
 
 	if !ok {
 		return fmt.Errorf("failed to get database connection from context")
 	}
 
 	var usersRepo repositories.IUsersRepo = &repositories.UsersRepo{
-		DB: db,
+		DB: dbSession,
 	}
 
-	user := usersRepo.Get(id)
+	user, err := usersRepo.Get(id)
 
-	if user == nil {
+	if err != nil {
+		log.Error(err)
 		return httpErrors.NewError(fiber.StatusNotFound, "", make(map[string]string))
 	}
 
@@ -115,8 +118,8 @@ func UpdateUserAPI(c *fiber.Ctx) error {
 		return httpErrors.NewError(fiber.StatusBadRequest, "", make(map[string]string))
 	}
 
-	db.Save(user)
-	db.Commit()
+	dbSession.Save(user)
+	dbSession.Commit()
 
 	return c.JSON(user)
 }
